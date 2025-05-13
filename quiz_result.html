@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Financial Personality Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <style>
+        /* Minor adjustments if needed for quiz result page, inheriting from style.css */
+        .result-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 30px; /* Consistent padding */
+            text-align: center;
+        }
+         .result-container .income-form { /* Re-using .income-form for card style */
+            padding: 30px;
+            text-align: left;
+         }
+        .result-container h1 { font-size: 2.2rem; }
+        .result-container p { font-size: 1.1rem; line-height: 1.7; }
+        .result-container strong { color: var(--primary-light); }
+        .result-container button {
+            /* style.css .income-form button has specific gradient, let's make it more generic or override */
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
+            padding: 12px 25px;
+            display: inline-block; /* For centering if needed */
+            width: auto; /* Override width:100% from .income-form button */
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-overlay"></div>
+    <div class="result-container container"> <!-- Added container -->
+        <h1>Your Financial Personality: <strong>{{ result }}</strong></h1>
+        <div class="income-form"> <!-- Re-using .income-form for styling the card -->
+            <h2>Personalized Advice:</h2>
+            <p>{{ advice }}</p>
+            <hr style="border-color: rgba(76, 201, 240, 0.3);">
+            <div style="text-align: center;">
+                <a href="{{ url_for('main_application') }}">
+                    <button>Back to Dashboard</button>
+                </a>
+                <a href="{{ url_for('personality_quiz') }}" style="margin-left: 15px;">
+                    <button style="background: linear-gradient(135deg, var(--secondary-color), var(--accent-color)); box-shadow: 0 4px 15px rgba(247, 37, 133, 0.3);">Take Quiz Again</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

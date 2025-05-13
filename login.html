@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackWise - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles_login.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="logo-container">
+                <!-- You can add a logo image here -->
+                <h1 class="app-title">TrackWise</h1>
+                <p class="app-subtitle">Your Personal Finance Companion</p>
+            </div>
+
+            <h2>Login</h2>
+            <p class="login-info">Enter your credentials to access the application.</p>
+            <!-- This form doesn't actually submit to a backend that validates credentials -->
+            <!-- It just navigates to the main app page -->
+            <form id="cosmetic-login-form">
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="user@example.com" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="********" required>
+                </div>
+                <button type="submit" class="login-button">Access Application</button>
+            </form>
+            <div class="theme-toggle-container">
+                <button id="theme-toggle-login">Toggle Theme</button>
+            </div>
+             <p style="text-align:center; margin-top:20px;">
+                <a href="{{ url_for('personality_quiz') }}" style="color: #4cc9f0; font-weight: bold; text-decoration:none;">Take the Financial Personality Quiz</a>
+            </p>
+            <p class="footer-note">© 2023 TrackWise. Futuristic Finance.</p>
+        </div>
+    </div>
+    <div class="grid-overlay-login"></div>
+    <script src="{{ url_for('static', filename='script_login.js') }}"></script>
+</body>
+</html>

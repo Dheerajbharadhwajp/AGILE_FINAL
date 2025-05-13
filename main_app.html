@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker & Financial Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Added Chart.js -->
+    <style>
+        /* Style for the new Analytic Hub on the main page */
+        .analytic-hub-main {
+            background-color: var(--card-bg, rgba(30, 41, 59, 0.7));
+            padding: 25px; /* Consistent padding */
+            border-radius: var(--border-radius, 8px);
+            margin-bottom: 25px;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            box-shadow: var(--box-shadow, 0 10px 30px -10px rgba(2, 12, 27, 0.7));
+        }
+        .analytic-hub-main h2 { /* Re-using some styles but ensuring no ::after */
+            color: var(--primary-light);
+            text-align: center;
+            font-size: 1.8rem; /* Adjusted size */
+            margin-bottom: 1.5rem;
+        }
+        .analytic-hub-main h2::after { display: none; } /* Remove underline from global h2 style */
+
+        .chart-container-main {
+            width: 100%;
+            max-width: 450px; /* Or your preferred max width */
+            min-height: 300px; /* Ensure it has some height */
+            height: 350px;    /* Explicit height */
+            margin: 1rem auto; /* Centering and spacing */
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Expense Tracker & Financial Assistant</h1>
+
+    <div style="text-align: center; margin-bottom: 25px; margin-top: -10px;">
+        <a href="{{ url_for('savings_tracker_page') }}"
+           style="display: inline-block; padding: 12px 25px; background: linear-gradient(135deg, var(--primary-color), var(--primary-light)); color: white; text-decoration: none; border-radius: var(--border-radius, 8px); font-weight: bold; font-size: 1.1rem; box-shadow: 0 5px 20px rgba(76, 201, 240, 0.35); transition: all 0.3s ease; border: none;"
+           onmouseover="this.style.transform='translateY(-3px) scale(1.03)'; this.style.boxShadow='0 8px 25px rgba(76, 201, 240, 0.45)';"
+           onmouseout="this.style.transform='translateY(0px) scale(1)'; this.style.boxShadow='0 5px 20px rgba(76, 201, 240, 0.35)';">
+            🚀 Go to Savings Goals & Analytics Hub
+        </a>
+    </div>
+
+    <!-- START: New Analytic Hub Section -->
+    <div class="analytic-hub-main">
+        <h2>Expense Breakdown</h2>
+        <div class="chart-container-main">
+            <canvas id="mainPageExpensePieChart"></canvas>
+        </div>
+    </div>
+    <!-- END: New Analytic Hub Section -->
+
+    <div class="container">
+        <!-- Income Input Form -->
+        <div class="income-form">
+            <h2>Your Income</h2>
+            <form action="{{ url_for('main_application') }}" method="post">
+                <input type="hidden" name="form_type" value="income"> <!-- Identifier -->
+                <label for="income">Estimated Monthly Income:</label>
+                <input type="number" id="income" name="income" step="0.01"
+                       value="{{ income if income is not none else '' }}"
+                       placeholder="Enter income amount">
+                <button type="submit">Update Income</button>
+            </form>
+             <p><strong>Current Monthly Income: ₹<span id="display-income">{{ "%.2f"|format(income) if income is not none else 'Not Set' }}</span></strong></p>
+        </div>
+
+        <!-- Expense Input Form -->
+        <div class="expense-form">
+            <h2>Add New Expense</h2>
+            <form action="{{ url_for('main_application') }}" method="post">
+                 <input type="hidden" name="form_type" value="expense"> <!-- Identifier -->
+                <label for="description">Description:</label>
+                <input type="text" id="description" name="description" required>
+
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" step="0.01" required>
+
+                <label for="category">Category:</label>
+                <select id="category" name="category" required>
+                    <option value="">--Select Category--</option>
+                    <option value="Food">Food</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Subscriptions">Subscriptions</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Housing">Housing</option>
+                    <option value="Debt Payment">Debt Payment</option>
+                    <option value="Savings/Investment">Savings/Investment</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <button type="submit">Add Expense</button>
+            </form>
+        </div>
+
+        <!-- Expense List & Analysis -->
+        <div class="expense-list">
+            <h2>Your Expenses & Analysis</h2>
+            <p><strong>Total Expenses: ₹<span id="total-expenses">{{ "%.2f"|format(analysis.total) }}</span></strong></p>
+            {% if analysis.income_comparison %}
+            <p><strong id="income-comparison-text">{{ analysis.income_comparison }}</strong>
+               {% if analysis.is_high %} <span class="warning">(Expenses seem high!)</span> {% endif %}
+            </p>
+            {% elif income is not none %}
+            <p id="income-comparison-text"><em>(Enter some expenses to see comparison.)</em></p>
+            {% else %}
+             <p id="income-comparison-text"><em>(Enter income and expenses for analysis.)</em></p>
+            {% endif %}
+
+             <p><strong>Spending by Category:</strong></p>
+             {% if analysis.categories %}
+             <ul id="category-spending-list"> <!-- Ensure this UL exists for context if chart is empty -->
+                 {% for category, amount in analysis.categories.items() %}
+                 <li>{{ category }}: ₹{{ "%.2f"|format(amount) }}</li>
+                 {% endfor %}
+             </ul>
+             {% else %}
+             <p id="category-spending-list-empty-message">{{ analysis.message }}</p>
+             {% endif %}
+
+            <hr> <!-- Separator -->
+            <h3>Expense Log:</h3>
+            {# --- START OF DEBUG COMMENT BLOCK 1 --- (UNCOMMENTED FOR FUNCTIONALITY) --- #}
+            <ul id="expenses-ul">
+                {% for expense in expenses|reverse %} <!-- Show newest first -->
+                <li data-id="{{ expense.id }}">
+                    {{ expense.description }} ({{ expense.category }}): ₹{{ "%.2f"|format(expense.amount) }}
+                    <button class="delete-btn" onclick="deleteExpense({{ expense.id }})">Delete</button>
+                </li>
+                {% else %}
+                    <li>{{ analysis.message if analysis and analysis.message else "No expenses logged yet." }}</li>
+                {% endfor %}
+            </ul>
+            {# --- END OF DEBUG COMMENT BLOCK 1 --- #}
+            <!-- <p><em>Expense log temporarily commented out for debugging. If the page loads, the error is in the commented section above.</em></p> -->
+
+        </div>
+
+        <!-- Chatbot Section -->
+        <div class="chatbot">
+            <h2>Savings Assistant</h2>
+             <p class="disclaimer" style="font-size: 0.8rem; color: var(--text-light); margin-bottom:15px;">AI suggestions are for informational purposes only. Stock examples are illustrative, not recommendations. Always do your own research.</p>
+            <div id="chatbox">
+                <p class="bot-message">Hello! Ask me how you can save money. I can use your expense data for insights. You can also ask about your financial personality if you've taken the quiz!</p>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Ask about saving, budgeting, etc." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div> <!-- end container -->
+    <div class="grid-overlay"></div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Data for pie chart from Flask (passed via Jinja)
+        // Ensure `analysis` and `analysis.categories` exist, otherwise default to empty object
+        const expenseCategoryData = {{ analysis.categories|tojson|safe if analysis and analysis.categories else '{}' }};
+        renderMainPageExpensePieChart(expenseCategoryData);
+
+        // Call existing DOMContentLoaded from script.js if it's there and does other setups
+        // (The provided script.js has its own DOMContentLoaded, this is just for the chart)
+    });
+
+    let mainPagePieChartInstance = null;
+
+    function renderMainPageExpensePieChart(categoryData) {
+        const canvas = document.getElementById('mainPageExpensePieChart');
+        if (!canvas) {
+            console.error("Pie chart canvas 'mainPageExpensePieChart' not found.");
+            return;
+        }
+        const ctx = canvas.getContext('2d');
+
+        const labels = Object.keys(categoryData);
+        const dataValues = Object.values(categoryData);
+
+        // Get theme-aware text color
+        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim() || '#e9ecef';
+
+        if (labels.length === 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (mainPagePieChartInstance) {
+                mainPagePieChartInstance.destroy();
+                mainPagePieChartInstance = null;
+            }
+            ctx.font = "16px 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillStyle = textColor;
+            ctx.fillText("No expense data by category to display.", canvas.width / 2, canvas.height / 2);
+            return;
+        }
+
+        // Generate dynamic colors
+        const backgroundColors = labels.map((_, i) => {
+            const hue = (i * (360 / labels.length) + 180) % 360; // Start with blues/cyans
+            return `hsl(${hue}, 70%, 65%)`;
+        });
+        const borderColors = labels.map((_, i) => {
+            const hue = (i * (360 / labels.length) + 180) % 360;
+            return `hsl(${hue}, 70%, 50%)`;
+        });
+
+
+        const chartConfig = {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Expenses by Category',
+                    data: dataValues,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1.5,
+                    hoverOffset: 8,
+                    hoverBorderColor: textColor,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: textColor,
+                            padding: 20,
+                            font: {
+                                size: 13,
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            }
+                        }
+                    },
+                    title: {
+                        display: false, // Title is already in the HTML (<h2>Expense Breakdown</h2>)
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.85)', // Darker tooltip
+                        titleColor: 'var(--primary-light)',
+                        bodyColor: 'var(--text-color)',
+                        borderColor: 'var(--primary-color)',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += '₹' + context.parsed.toFixed(2);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        if (mainPagePieChartInstance) {
+            mainPagePieChartInstance.destroy();
+        }
+        mainPagePieChartInstance = new Chart(ctx, chartConfig);
+    }
+    </script>
+</body>
+</html>

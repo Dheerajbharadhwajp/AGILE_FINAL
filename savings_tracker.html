@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Tracker & Financial Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #4cc9f0;
+            --success-color: #06d6a0;
+            --text-color: #e9ecef;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-radius: 16px;
+            --danger-color: #f44336; /* Bootstrap's danger red or your theme's */
+            --danger-hover-color: #d32f2f;
+            --background-dark: #0f172a; /* Ensure this is defined */
+        }
+        body {
+            background: var(--background-dark);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card-custom {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            box-shadow: 0 10px 30px -10px rgba(2, 12, 27, 0.7);
+        }
+        .card-custom h2, .card-custom h3 {
+            color: var(--primary-light);
+            text-align: left;
+        }
+        .card-custom h2::after, .card-custom h3::after { display: none; }
+        .card-custom h2 { font-size: 1.8rem; margin-bottom: 1rem; }
+        .card-custom h3 { font-size: 1.5rem; margin-bottom: 0.8rem; }
+
+        .form-control, .form-select {
+            background-color: rgba(15, 23, 42, 0.85) !important; /* Slightly more opaque */
+            color: var(--text-color) !important;
+            border: 1px solid rgba(76, 201, 240, 0.4) !important; /* More visible border */
+            border-radius: 0.375rem; /* Bootstrap default */
+        }
+        .form-control::placeholder { color: rgba(233, 236, 239, 0.6); }
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(30, 41, 59, 0.95) !important;
+            color: var(--text-color) !important;
+            border-color: var(--primary-light) !important;
+            box-shadow: 0 0 0 0.25rem rgba(76, 201, 240, 0.25) !important;
+        }
+        .form-label { color: var(--primary-light); font-weight: 500; }
+        .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
+        .btn-primary:hover { background-color: #3751d1; border-color: #3751d1; } /* Darker shade for hover */
+        .btn-success { background-color: var(--success-color); border-color: var(--success-color); }
+        .btn-success:hover { background-color: #05b388; border-color: #05b388; } /* Darker shade */
+        
+        .progress-bar-custom { background-color: var(--success-color) !important; }
+        .challenge-item {
+            border-left: 4px solid var(--primary-light);
+            margin-bottom: 15px; padding: 20px; /* Increased padding */
+            background: rgba(40, 51, 69, 0.6); 
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+            position: relative; /* For delete button */
+            padding-right: 50px; /* Space for delete button */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .challenge-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .challenge-item.completed {
+            border-left-color: var(--success-color);
+            opacity: 0.85;
+        }
+        .challenge-item h5 { 
+            color: var(--primary-light); 
+            font-weight: 600; 
+            margin-bottom: 0.5rem;
+        }
+        .challenge-item p { margin-bottom: 0.75rem; font-size: 0.95rem; }
+        .challenge-item .progress { height: 25px; border-radius: 0.375rem; }
+        
+        .delete-challenge-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10;
+            padding: 0.3rem 0.6rem; /* Slightly more padding */
+            font-size: 0.9rem; 
+            line-height: 1;
+            border-radius: 0.3rem;
+            color: var(--danger-color);
+            background-color: transparent;
+            border: 1px solid var(--danger-color);
+            transition: all 0.2s ease-in-out;
+        }
+        .delete-challenge-btn:hover,
+        .delete-challenge-btn:focus {
+            color: #fff;
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+            transform: scale(1.05); /* Slight zoom effect */
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.35);
+        }
+        .delete-challenge-btn i { pointer-events: none; }
+
+        h1.page-title {
+            color: var(--primary-light); text-align: center; font-weight: 600;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.5); font-size: 2.8rem;
+            margin: 2rem 0;
+            background: linear-gradient(90deg, var(--primary-light), var(--accent-color, var(--primary-color))); /* Added fallback for accent-color */
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            letter-spacing: 2px; position: relative; display: inline-block;
+            left: 50%; transform: translateX(-50%); padding: 1rem;
+        }
+        h1.page-title::before, h1.page-title::after { display:none; }
+
+        .list-group-item-action { 
+            transition: background-color 0.2s ease-in-out;
+            background-color: var(--card-bg) !important; /* Ensure consistent background */
+            border-color: rgba(76, 201, 240, 0.2) !important; /* Consistent border */
+        }
+        .list-group-item-action:hover { background-color: rgba(76, 201, 240, 0.1) !important; }
+        .list-group-item h5 {color: var(--primary-light);}
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="grid-overlay"></div>
+    <div class="container py-4">
+        <h1 class="mb-4 page-title">Savings Tracker & Financial Hub</h1>
+        
+        <div class="row">
+            <div class="col-lg-7 col-md-12 mb-4">
+                <div class="card-custom">
+                    <h2>🏅 Savings Challenge</h2>
+                    <form method="POST" action="{{ url_for('savings_tracker_page') }}" id="new-challenge-form">
+                        <input type="hidden" name="form_type" value="new_challenge">
+                        <div class="mb-3">
+                            <label for="goal_name" class="form-label">Goal Name</label>
+                            <input type="text" class="form-control" id="goal_name" name="goal_name" placeholder="e.g., New Laptop, Vacation Fund" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="target_amount" class="form-label">Target Amount (₹)</label>
+                                <input type="number" step="0.01" min="1" class="form-control" id="target_amount" name="target_amount" placeholder="e.g., 50000" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="duration_days" class="form-label">Duration (days)</label>
+                                <input type="number" min="0" class="form-control" id="duration_days" name="duration_days" placeholder="e.g., 90 (or leave blank)">
+                                <small class="form-text" style="color: rgba(233, 236, 239, 0.7);">Optional. Sets an end date from today.</small>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fs-5"><i class="fas fa-plus-circle me-2"></i> Add New Challenge</button>
+                    </form>
+                    <hr style="border-color: rgba(76, 201, 240, 0.3); margin: 30px 0;">
+                    <h3>Active Challenges</h3>
+                    <div id="active-challenges-list">
+                        {% if challenges %}
+                            {% for challenge in challenges %}
+                            <div class="challenge-item {% if challenge.status == 'completed' %}completed{% endif %}" id="challenge-{{ challenge.id }}" data-challenge-id="{{ challenge.id }}">
+                                <button class="btn btn-sm delete-challenge-btn" title="Delete Challenge" onclick="deleteChallenge({{ challenge.id }})">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5>{{ challenge.name }}</h5>
+                                    {% if challenge.status == 'completed' %}
+                                        <span class="badge bg-success fs-6 px-3 py-2">Completed! <i class="fas fa-check-circle ms-1"></i></span>
+                                    {% elif challenge.status == 'active' and challenge.days_remaining == 0 and challenge.end_date %}
+                                        <span class="badge bg-danger fs-6 px-3 py-2">Deadline Reached!</span>
+                                    {% endif %}
+                                </div>
+                                <p class="mb-1">Target: ₹{{ "%.2f"|format(challenge.target_amount) }} | Saved: <strong id="saved-{{ challenge.id }}">₹{{ "%.2f"|format(challenge.saved_so_far) }}</strong></p>
+                                {% set progress = (challenge.saved_so_far / (challenge.target_amount if challenge.target_amount > 0 else 1) * 100) | round(1) %}
+                                <div class="progress mb-2" style="height: 25px; background-color: rgba(0,0,0,0.3);">
+                                    <div id="progress-bar-{{ challenge.id }}" class="progress-bar progress-bar-custom progress-bar-striped progress-bar-animated fw-bold" role="progressbar" style="width: {{ progress }}%;" aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">{{ progress }}%</div>
+                                </div>
+                                <p>Days Remaining: <strong id="days-remaining-{{challenge.id}}">{{ challenge.days_remaining }}</strong>
+                                   {% if challenge.end_date_obj_for_strftime %}<small class="text-muted"> (Ends: {{ challenge.end_date_obj_for_strftime.strftime('%d %b %Y') }})</small>{% endif %}
+                                </p>
+                                {% if challenge.status == 'active' %}
+                                <div class="input-group mt-3">
+                                    <span class="input-group-text" style="background-color: rgba(15,23,42,0.8); border-color: rgba(76,201,240,0.4); color: var(--primary-light);">₹</span>
+                                    <input type="number" step="0.01" min="0.01" class="form-control" placeholder="Add Savings" id="add-amount-{{ challenge.id }}" aria-label="Add savings amount">
+                                    <button class="btn btn-success px-3" onclick="addSavingsProgress({{ challenge.id }})"><i class="fas fa-piggy-bank me-1"></i> + Add</button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-center p-3" style="color: var(--text-light);" id="no-challenges-message">No savings challenges yet. Add one above!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 col-md-12">
+                <div class="card-custom">
+                    <h2>📈 Stock Suggestions</h2>
+                    <div id="stock-suggestions-list" class="list-group">
+                        <p class="text-center p-3" style="color: var(--text-light);" id="stock-loader">Loading stock examples...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="text-center mt-4">
+            <a href="{{ url_for('main_application') }}" class="btn btn-outline-light btn-lg"><i class="fas fa-tachometer-alt me-1"></i> Back to Main Dashboard</a>
+        </p>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='savings.js') }}"></script>
+</body>
+</html>

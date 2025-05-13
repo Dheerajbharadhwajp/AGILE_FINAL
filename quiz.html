@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrackWise | Financial Personality Quiz</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Minor adjustments if needed for quiz page, inheriting from style.css */
+        .quiz-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 30px;
+        }
+        .quiz-container h1 { margin-bottom: 1.5rem; }
+        .quiz-container .expense-form label { /* Re-using expense-form style */
+            font-size: 1rem; /* Slightly larger for readability */
+            margin-bottom: 0.8rem;
+        }
+         .quiz-container .expense-form select {
+            margin-bottom: 1.5rem;
+         }
+         .quiz-container .expense-form button {
+            margin-top: 1rem;
+         }
+    </style>
+</head>
+<body>
+    <div class="grid-overlay"></div>
+    <div class="quiz-container container"> <!-- Added container for consistent padding/centering -->
+        <h1>What's Your Financial Personality?</h1>
+        <form method="POST" action="{{ url_for('personality_quiz') }}" class="expense-form"> <!-- Re-using .expense-form for styling -->
+            <h2>Answer Honestly:</h2>
+
+            <label for="q1">1. When you receive income, what's your first instinct?</label>
+            <select name="q1" id="q1" required>
+                <option value="">--Select--</option>
+                <option value="Saver">Save a good portion of it</option>
+                <option value="Spender">Think about what you can buy</option>
+                <option value="Planner">Allocate it according to your budget/plan</option>
+                <option value="Adventurer">Look for a new experience to fund</option>
+            </select>
+
+            <label for="q2">2. How often do you track your expenses?</label>
+            <select name="q2" id="q2" required>
+                <option value="">--Select--</option>
+                <option value="Planner">Regularly (e.g., daily or weekly)</option>
+                <option value="Saver">Occasionally, but I focus on saving goals</option>
+                <option value="Spender">Rarely, or only when I need to</option>
+                <option value="Adventurer">Almost never, unless planning a big trip</option>
+            </select>
+
+            <label for="q3">3. If your bank balance is high, you think...</label>
+            <select name="q3" id="q3" required>
+                <option value="">--Select--</option>
+                <option value="Adventurer">"Time for a new adventure or experience!"</option>
+                <option value="Spender">"What can I treat myself to?"</option>
+                <option value="Saver">"Great! Let's keep it growing or save more."</option>
+                <option value="Planner">"Good, I'm on track with my financial goals."</option>
+            </select>
+
+            <label for="q4">4. How do you feel about budgeting?</label>
+            <select name="q4" id="q4" required>
+                <option value="">--Select--</option>
+                <option value="Planner">It's essential and I (try to) stick to one.</option>
+                <option value="Saver">I don't strictly budget, but I'm naturally frugal.</option>
+                <option value="Spender">It feels too restrictive.</option>
+                <option value="Adventurer">It's boring and gets in the way of spontaneity.</option>
+            </select>
+
+            <label for="q5">5. What's your primary long-term money goal?</label>
+            <select name="q5" id="q5" required>
+                <option value="">--Select--</option>
+                <option value="Saver">Build a large nest egg / achieve financial security.</option>
+                <option value="Planner">Achieve specific financial milestones (e.g., buy a house, retire by X age).</option>
+                <option value="Spender">Ensure I can always afford the things I enjoy.</option>
+                <option value="Adventurer">Fund a lifetime of travel and unique experiences.</option>
+            </select>
+
+            <button type="submit">See My Result</button>
+        </form>
+         <p style="text-align:center; margin-top:20px;">
+            <a href="{{ url_for('login_page_route') }}" style="color: #4cc9f0; font-weight: bold;">Back to Login</a>
+        </p>
+    </div>
+</body>
+</html>
